@@ -2,7 +2,7 @@ import loadScript from 'load-script';
 
 const HOST = 'https://maps.googleapis.com/maps/api/js';
 const KEY = 'AIzaSyAEm-OBT3TV_eMxfcFErrFEJ4Z_cVWe4eQ';
-const URL = `${HOST}?key=${KEY}&libraries=places`;
+const URL = `${HOST}?key=${KEY}&language=en&region=GB`;
 
 const GoogleMapApi = (
   success = () => {},

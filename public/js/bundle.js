@@ -14625,7 +14625,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var HOST = 'https://maps.googleapis.com/maps/api/js';
 var KEY = 'AIzaSyAEm-OBT3TV_eMxfcFErrFEJ4Z_cVWe4eQ';
-var URL = HOST + '?key=' + KEY + '&libraries=places';
+var URL = HOST + '?key=' + KEY + '&language=en&region=GB';
 
 var GoogleMapApi = function GoogleMapApi() {
   var success = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
@@ -14699,16 +14699,15 @@ var WeatherMapApp = function (_React$Component) {
     (0, _createClass3.default)(WeatherMapApp, [{
         key: 'getCurrentCoords',
         value: function getCurrentCoords() {
-            var _this2 = this;
-
-            var options = {
-                enableHighAccuracy: true,
+            var that = this,
+                options = {
+                enableHighAccuracy: false,
                 timeout: 5000,
                 maximumAge: 0
             };
             navigator.geolocation.getCurrentPosition(function (pos) {
-                _this2.coords = pos.coords;
-                _this2.getMap();
+                that.coords = pos.coords;
+                that.getMap();
             }, function (err) {
                 console.warn('ERROR: ' + err);
             }, options);
@@ -14716,28 +14715,48 @@ var WeatherMapApp = function (_React$Component) {
     }, {
         key: 'getMap',
         value: function getMap() {
-            var _this3 = this;
-
+            var that = this;
             (0, _GoogleMapApi2.default)(function () {
                 var google = window.google;
-                var map = new google.maps.Map(document.getElementById('map'), {
-                    center: { lat: _this3.coords.latitude, lng: _this3.coords.longitude },
+                that.position = { lat: that.coords.latitude, lng: that.coords.longitude };
+                that.map = new google.maps.Map(document.getElementById('map'), {
+                    center: that.position,
                     scrollwheel: false,
-                    zoom: 8
+                    zoom: 8,
+                    disableDefaultUI: true,
+                    zoomControl: true
                 });
-                _this3.getWeather();
+                console.log(that.position);
+                that.getWeather();
             });
         }
     }, {
         key: 'getWeather',
         value: function getWeather() {
+            var that = this;
             fetch('http://api.openweathermap.org/data/2.5/weather?lat=' + this.coords.latitude + '&lon=' + this.coords.longitude + '&appid=bd9421558322b6d233924c2c619282a8').then(function (response) {
                 return response.json();
             }).then(function (data) {
-                var temp = data.main.temp - 273.15;
+                that.weather = data;
                 console.log(data);
-                alert('Температура: ' + temp);
+                that.getInfoWindow();
             });
+        }
+    }, {
+        key: 'getInfoWindow',
+        value: function getInfoWindow() {
+            var that = this,
+                google = window.google,
+                city = that.weather.name,
+                temp = that.weather.main.temp - 273.15,
+                hum = that.weather.main.humidity,
+                press = that.weather.main.pressure,
+                html = '<strong>' + city + '</strong><br/>temperature: ' + temp + '°C<br/>humidity: ' + hum + '%<br>pressure: ' + press,
+                infowindow = new google.maps.InfoWindow({
+                content: html,
+                position: that.position
+            });
+            infowindow.open(that.map);
         }
     }, {
         key: 'componentDidMount',
