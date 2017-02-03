@@ -5,7 +5,10 @@ import { saveCity } from '../actions'
 
 const mapStateToProps = (state) => {
   return {
-  	currentPlace: state.currentPlace
+  	currentPlace: state.currentPlace,
+  	showButton: state.cities.every((city)=>{
+  		return city.place_id != state.currentPlace.place_id
+  	})
   }
 }
 
@@ -20,7 +23,7 @@ const mapDispatchToProps = (dispatch) => {
 class AddCityButton extends React.Component {
 	render() {
 		return (
-			<button className="weathermap__addcity" onClick={() => this.props.saveCity(this.props.currentPlace)}>Add City</button>
+			<button className="weathermap__addcity" onClick={() => this.props.saveCity(this.props.currentPlace)} style={{display:this.props.showButton ? 'block' : 'none'}}>Add City</button>
 		)
 	}
 }

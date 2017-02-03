@@ -19,21 +19,22 @@ const reducer = combineReducers({
   currentPlace
 });
 
+let currentPosition = { lat: 25.18, lng: 83 } //если пользователь запретит доступ к его геолокации
+
 let initialState = {
 					map: null,
 					cities: [],
-					currentPosition: { lat: 25, lng: 83 }, // Если вдруг не получим текущие координаты пользователя
-					currentPlace: null,
+					currentPlace: null
 }
 
 const getCurrentCoords = () => {
 	let options = {
-        enableHighAccuracy: false,
+        enableHighAccuracy: true,
         timeout: 5000,
         maximumAge: 0
     }
     navigator.geolocation.getCurrentPosition((pos) => { 
-        		initialState.currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+        		currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude }
             	gotCoords()
             }, (err) => { 
             	console.warn('ERROR: ' + err)
@@ -46,15 +47,31 @@ const gotCoords = () => { //После того как получили коор
 	GoogleMapApi(() => { // Подгружаем GoogleMaps API
 		let google = window.google,
 			map = new google.maps.Map(document.getElementById('map'), {
-                    center: initialState.currentPosition,
+                    center: currentPosition,
                     scrollwheel: false,
                     zoom: 8,
                     disableDefaultUI: true,
                     zoomControl: true
-                })
+                }),
+			service = new google.maps.places.PlacesService(map),
+			googleLatLng = new google.maps.LatLng(currentPosition.lat,currentPosition.lng),
+			request = {
+		    	location: googleLatLng,
+		    	radius: '1'
+			}
 
-		initialState.map = map; //создаем карту и отправлем ее в стейт
-		mapIsReady()
+  		service.nearbySearch(request, (answer)=>{
+  			answer.forEach((googleItem)=>{
+  				googleItem.types.forEach((googleType)=>{
+  					if(googleType == 'locality') {
+  						initialState.currentPlace = googleItem
+  					}
+  				})
+  			})
+  			initialState.map = map; //создаем карту и отправлем ее в стейт
+			mapIsReady()
+  		})
+
 	})
 
 }

@@ -14661,7 +14661,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var mapStateToProps = function mapStateToProps(state) {
     return {
         map: state.map,
-        position: state.currentPosition
+        place: state.currentPlace,
+        addCityButton: state.addCityButton
     };
 };
 
@@ -14681,13 +14682,15 @@ var WeatherMapApp = function (_React$Component) {
         key: 'getWeather',
         value: function getWeather() {
             var that = this,
-                pos = that.props.position,
+                pos = {
+                lat: that.props.place.geometry.location.lat(),
+                lng: that.props.place.geometry.location.lng()
+            },
                 url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.lat + '&lon=' + pos.lng + '&units=metric&appid=bd9421558322b6d233924c2c619282a8';
             fetch(url).then(function (response) {
                 return response.json();
             }).then(function (data) {
                 that.weather = data;
-                console.log(data);
                 that.getInfoWindow();
             });
         }
@@ -14696,14 +14699,14 @@ var WeatherMapApp = function (_React$Component) {
         value: function getInfoWindow() {
             var that = this,
                 google = window.google,
-                city = that.weather.name,
+                city = that.props.place.name,
                 temp = that.weather.main.temp,
                 hum = that.weather.main.humidity,
                 press = that.weather.main.pressure,
                 html = '<strong>' + city + '</strong><br/>temperature: ' + temp + '°C<br/>humidity: ' + hum + '%<br>pressure: ' + press,
                 infowindow = new google.maps.InfoWindow({
                 content: html,
-                position: that.props.position
+                position: that.props.place.geometry.location
             });
             infowindow.open(that.props.map);
         }
@@ -14778,21 +14781,22 @@ var reducer = (0, _redux.combineReducers)({
 	currentPlace: _currentPlace2.default
 });
 
+var currentPosition = { lat: 25.18, lng: 83 }; //если пользователь запретит доступ к его геолокации
+
 var initialState = {
 	map: null,
 	cities: [],
-	currentPosition: { lat: 25, lng: 83 }, // Если вдруг не получим текущие координаты пользователя
 	currentPlace: null
 };
 
 var getCurrentCoords = function getCurrentCoords() {
 	var options = {
-		enableHighAccuracy: false,
+		enableHighAccuracy: true,
 		timeout: 5000,
 		maximumAge: 0
 	};
 	navigator.geolocation.getCurrentPosition(function (pos) {
-		initialState.currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+		currentPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 		gotCoords();
 	}, function (err) {
 		console.warn('ERROR: ' + err);
@@ -14807,15 +14811,30 @@ var gotCoords = function gotCoords() {
 		// Подгружаем GoogleMaps API
 		var google = window.google,
 		    map = new google.maps.Map(document.getElementById('map'), {
-			center: initialState.currentPosition,
+			center: currentPosition,
 			scrollwheel: false,
 			zoom: 8,
 			disableDefaultUI: true,
 			zoomControl: true
-		});
+		}),
+		    service = new google.maps.places.PlacesService(map),
+		    googleLatLng = new google.maps.LatLng(currentPosition.lat, currentPosition.lng),
+		    request = {
+			location: googleLatLng,
+			radius: '1'
+		};
 
-		initialState.map = map; //создаем карту и отправлем ее в стейт
-		mapIsReady();
+		service.nearbySearch(request, function (answer) {
+			answer.forEach(function (googleItem) {
+				googleItem.types.forEach(function (googleType) {
+					if (googleType == 'locality') {
+						initialState.currentPlace = googleItem;
+					}
+				});
+			});
+			initialState.map = map; //создаем карту и отправлем ее в стейт
+			mapIsReady();
+		});
 	});
 };
 
@@ -34394,7 +34413,7 @@ module.exports = __webpack_require__(253);
 
 
 Object.defineProperty(exports, "__esModule", {
-	value: true
+  value: true
 });
 
 var _getPrototypeOf = __webpack_require__(443);
@@ -34428,54 +34447,80 @@ var _actions = __webpack_require__(628);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var mapStateToProps = function mapStateToProps(state) {
-	return {
-		map: state.map
-	};
+  return {
+    map: state.map
+  };
 };
 
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
-	return {
-		changePlace: function changePlace(place) {
-			dispatch((0, _actions.changePlace)(place));
-		}
-	};
+  return {
+    changePlace: function changePlace(place) {
+      dispatch((0, _actions.changePlace)(place));
+    }
+  };
 };
 
 var SearchBox = function (_React$Component) {
-	(0, _inherits3.default)(SearchBox, _React$Component);
+  (0, _inherits3.default)(SearchBox, _React$Component);
 
-	function SearchBox() {
-		(0, _classCallCheck3.default)(this, SearchBox);
-		return (0, _possibleConstructorReturn3.default)(this, (SearchBox.__proto__ || (0, _getPrototypeOf2.default)(SearchBox)).apply(this, arguments));
-	}
+  function SearchBox() {
+    (0, _classCallCheck3.default)(this, SearchBox);
+    return (0, _possibleConstructorReturn3.default)(this, (SearchBox.__proto__ || (0, _getPrototypeOf2.default)(SearchBox)).apply(this, arguments));
+  }
 
-	(0, _createClass3.default)(SearchBox, [{
-		key: 'componentDidMount',
-		value: function componentDidMount() {
-			var that = this,
-			    google = window.google,
-			    $input = document.getElementById('searchbox'),
-			    searchBox = new google.maps.places.SearchBox($input);
-			searchBox.addListener('places_changed', function () {
-				var newPlace = searchBox.getPlaces()[0],
-				    newPosition = newPlace.geometry.location,
-				    html = 'ляляля',
-				    infowindow = new google.maps.InfoWindow({
-					content: html,
-					position: newPosition
-				});
-				that.props.changePlace(newPlace);
-				that.props.map.setCenter(newPosition);
-				infowindow.open(that.props.map);
-			});
-		}
-	}, {
-		key: 'render',
-		value: function render() {
-			return _react2.default.createElement('input', { className: 'weathermap__searchbox', id: 'searchbox', placeholder: 'find city' });
-		}
-	}]);
-	return SearchBox;
+  (0, _createClass3.default)(SearchBox, [{
+    key: 'getWeather',
+    value: function getWeather() {
+      var that = this,
+          pos = {
+        lat: that.newPlace.geometry.location.lat(),
+        lng: that.newPlace.geometry.location.lng()
+      },
+          url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.lat + '&lon=' + pos.lng + '&units=metric&appid=bd9421558322b6d233924c2c619282a8';
+      fetch(url).then(function (response) {
+        return response.json();
+      }).then(function (data) {
+        that.weather = data;
+        that.getInfoWindow();
+      });
+    }
+  }, {
+    key: 'getInfoWindow',
+    value: function getInfoWindow() {
+      var that = this,
+          google = window.google,
+          city = that.newPlace.name,
+          temp = that.weather.main.temp,
+          hum = that.weather.main.humidity,
+          press = that.weather.main.pressure,
+          html = '<strong>' + city + '</strong><br/>temperature: ' + temp + '°C<br/>humidity: ' + hum + '%<br>pressure: ' + press,
+          infowindow = new google.maps.InfoWindow({
+        content: html,
+        position: that.newPlace.geometry.location
+      });
+      that.props.changePlace(that.newPlace);
+      that.props.map.setCenter(that.newPlace.geometry.location);
+      infowindow.open(that.props.map);
+    }
+  }, {
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      var that = this,
+          google = window.google,
+          $input = document.getElementById('searchbox'),
+          searchBox = new google.maps.places.SearchBox($input);
+      searchBox.addListener('places_changed', function () {
+        that.newPlace = searchBox.getPlaces()[0];
+        that.getWeather();
+      });
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      return _react2.default.createElement('input', { className: 'weathermap__searchbox', id: 'searchbox', placeholder: 'find city' });
+    }
+  }]);
+  return SearchBox;
 }(_react2.default.Component);
 
 var Out = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(SearchBox);
@@ -34615,7 +34660,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var mapStateToProps = function mapStateToProps(state) {
   return {
-    currentPlace: state.currentPlace
+    currentPlace: state.currentPlace,
+    showButton: state.cities.every(function (city) {
+      return city.place_id != state.currentPlace.place_id;
+    })
   };
 };
 
@@ -34644,7 +34692,7 @@ var AddCityButton = function (_React$Component) {
         'button',
         { className: 'weathermap__addcity', onClick: function onClick() {
             return _this2.props.saveCity(_this2.props.currentPlace);
-          } },
+          }, style: { display: this.props.showButton ? 'block' : 'none' } },
         'Add City'
       );
     }
