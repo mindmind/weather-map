@@ -1,18 +1,29 @@
 import React from 'react'
 import { connect } from 'react-redux'
 
-import { changePlace } from '../actions'
+import { changePlace, setCurrentInfobox, setInputValue } from '../actions'
 
 const mapStateToProps = (state) => {
 	return {
-		map: state.map
+		map: state.map,
+		cities: state.cities,
+		currentInfobox: state.currentInfobox,
+		inputValue: state.inputValue
 	}
 }
 
 const mapDispatchToProps = (dispatch) => {
   return {
-  	changePlace : (place) => {
+  	changePlace : (place,infobox) => {
   		dispatch(changePlace(place))
+  		dispatch(setCurrentInfobox(infobox))
+  		dispatch(setInputValue(''))
+  	},
+  	changeText : (event) => {
+  		dispatch(setInputValue(event.target.value))
+  	},
+  	cancel: () => {
+  		dispatch(setInputValue(''))
   	}
   }
 }
@@ -47,25 +58,27 @@ class SearchBox extends React.Component {
     				content: html,
     				position: that.newPlace.geometry.location
 				})
-				that.props.changePlace(that.newPlace)
-				that.props.map.setCenter(that.newPlace.geometry.location)
-				infowindow.open(that.props.map);
-    }
+			that.newPlace.infobox = infowindow
+			that.props.currentInfobox.close()
+			that.props.changePlace(that.newPlace,infowindow)
+			that.props.map.setCenter(that.newPlace.geometry.location)
+			infowindow.open(that.props.map)
+	}
 
 	componentDidMount(){
 		let that = this,
 			google = window.google,
 			$input = document.getElementById('searchbox'),
-			searchBox = new google.maps.places.SearchBox($input)
-  		searchBox.addListener('places_changed', function() {
-  			that.newPlace = searchBox.getPlaces()[0]
+			searchBox = new google.maps.places.Autocomplete($input,{types: ['(cities)']})
+  		searchBox.addListener('place_changed', function() {
+  			that.newPlace = searchBox.getPlace()
 			that.getWeather()
 		})
 	}
 
 	render(){
 		return (
-			<input className="weathermap__searchbox" id="searchbox" placeholder="find city" />
+			<input className="weathermap__searchbox" id="searchbox" placeholder="find city" onChange={this.props.changeText} value={this.props.inputValue} onFocus={this.props.cancel} />
 		)
 	}
 }

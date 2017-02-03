@@ -18,3 +18,17 @@ export const removeCity = (_id) => {
     _id
   }
 }
+
+export const setCurrentInfobox = (infobox) => {
+  return {
+    type: 'SET_CURRENT_INFOBOX',
+    infobox
+  }
+}
+
+export const setInputValue = (value) => {
+  return {
+    type: 'SET_INPUT_VALUE',
+    value
+  }
+}
