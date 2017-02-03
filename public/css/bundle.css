@@ -1,10 +1,68 @@
 html,
-body,
-#root {
+body {
   margin: 0;
   height: 100%; }
 
-.hello-world__text {
-  font-size: 80px; }
+#root {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none; }
+
+.weathermap__wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative; }
+
+.weathermap__map {
+  width: 100%;
+  height: 100%; }
+
+.weathermap__searchbox {
+  position: absolute;
+  left: auto;
+  top: 20px;
+  right: 20px;
+  width: 200px;
+  border: 1px solid #333;
+  pointer-events: auto; }
+
+.weathermap__addcity {
+  position: absolute;
+  left: auto;
+  top: 20px;
+  right: 240px;
+  pointer-events: auto;
+  cursor: pointer; }
+
+.weathermap__citieslist {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 200px; }
+
+.weathermap__cityitem {
+  position: relative;
+  background: #ccc;
+  padding: 10px;
+  border: 1px solid #333;
+  pointer-events: auto;
+  margin-bottom: 5px; }
+
+.weathermap__cityselect {
+  cursor: pointer; }
+
+.weathermap__cityremove {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-image: url(https://maps.gstatic.com/mapfiles/api-3/images/mapcnt6.png);
+  background-repeat: no-repeat;
+  background-position: -2px -336px;
+  width: 13px;
+  height: 13px;
+  cursor: pointer; }
 
 /*# sourceMappingURL=bundle.css.map*/
