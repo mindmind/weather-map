@@ -1,3 +1,5 @@
+import 'whatwg-fetch'
+
 const GetInfoBox = (map,place,callback) => {
   let weather = null
 
