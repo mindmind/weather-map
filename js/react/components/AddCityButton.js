@@ -14,7 +14,15 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-  	saveCity: (city) => {
+  	saveCity: (place) => {
+  		let city = {
+  			place_id : place.place_id,
+  			name : place.name,
+  			pos : "pos" in place ? place.pos : {
+  				lat: place.geometry.location.lat(),
+  				lng: place.geometry.location.lng()
+  			}
+  		}
   		dispatch(saveCity(city))
   	}
   }

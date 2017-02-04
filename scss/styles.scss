@@ -1,7 +1,14 @@
+* {
+	outline: none;
+}
+
 html,
 body {
 	margin: 0;
 	height: 100%;
+	font-size: 12px;
+	font-weight: 400;
+	font-family: Roboto, Arial, sans-serif;
 }
 
 #root {
@@ -31,14 +38,28 @@ body {
 		width: 200px;
 		border: 1px solid #333;
 		pointer-events: auto;
+		font-size: 12px;
+		font-weight: 400;
+		font-family: Roboto, Arial, sans-serif;
+		padding: 7px 10px;
 	}
 	&__addcity {
 		position: absolute;
 		left: auto;
 		top: 20px;
-		right: 240px;
+		right: 260px;
 		pointer-events: auto;
 		cursor: pointer;
+		font-size: 12px;
+		font-weight: 400;
+		font-family: Roboto, Arial, sans-serif;
+		padding: 7px 10px;
+		border: 1px solid #333;
+		background-color: #333;
+		color: #fff;
+		&:active {
+			background-color: #666;
+		}
 	}
 	&__citieslist{
 		position: absolute;
@@ -48,9 +69,9 @@ body {
 	}
 	&__cityitem {
 		position: relative;
-		background:#ccc;
-		padding: 10px;
-		border: 1px solid #333;
+		background: #fff;
+		padding: 7px 10px;
+		border: 1px solid #7d7d7d;
 		pointer-events: auto;
 		margin-bottom: 5px;
 	}
@@ -59,8 +80,8 @@ body {
 	}
 	&__cityremove {
 		position: absolute;
-		top: 5px;
-		right: 5px;
+		top: 8px;
+		right: 8px;
 		background-image:url(https://maps.gstatic.com/mapfiles/api-3/images/mapcnt6.png);
 		background-repeat: no-repeat;
 		background-position: -2px -336px;

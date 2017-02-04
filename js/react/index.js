@@ -3,7 +3,7 @@ import 'babel-polyfill'
 import React from 'react'
 import { render } from 'react-dom'
 import { Provider } from 'react-redux'
-import { createStore, combineReducers } from 'redux'
+import { createStore, combineReducers, compose } from 'redux'
 
 import map from './reducers/map'
 import cities from './reducers/cities'
@@ -14,6 +14,7 @@ import inputValue from './reducers/inputValue'
 import WeatherMapApp from './components/WeatherMapApp'
 
 import GoogleMapApi from './assets/GoogleMapApi'
+import GetInfoBox from './assets/GetInfoBox'
 
 const reducer = combineReducers({
   map,
@@ -29,7 +30,7 @@ let weather = null
 
 let initialState = {
 					map: null,
-					cities: [],
+					cities: 'cities' in localStorage ? JSON.parse(localStorage.cities) : [],
 					currentPlace: null,
 					currentInfobox: null,
 					inputValue: 'find city'
@@ -74,53 +75,33 @@ const gotCoords = () => { //После того как получили коор
   			answer.forEach((googleItem)=>{
   				googleItem.types.forEach((googleType)=>{
   					if(googleType == 'locality') {
-  						initialState.currentPlace = googleItem
+  						initialState.currentPlace = {
+  							place_id : googleItem.place_id,
+  							name: googleItem.name,
+  							pos: {
+  								lat: googleItem.geometry.location.lat(),
+  								lng: googleItem.geometry.location.lng()
+  							}
+  						}
   					}
   				})
   			})
 
-  			getWeather()
+  			GetInfoBox(initialState.map,initialState.currentPlace,mapIsReady);
 
   		})
 
-  		const getWeather = () => {
-			let pos = {
-        			lat: initialState.currentPlace.geometry.location.lat(),
-        			lng: initialState.currentPlace.geometry.location.lng()
-        		},	
-        		url = 'http://api.openweathermap.org/data/2.5/weather?lat='+pos.lat+'&lon='+pos.lng+'&units=metric&appid=bd9421558322b6d233924c2c619282a8'
-            fetch(url)
-            .then(function(response) {
-                    return response.json()
-                }).then(function(data) {
-                	weather = data
-                	getInfoWindow()
-                })
-         }
-
-        const getInfoWindow = () => {
-        	let google = window.google,
-        		city = initialState.currentPlace.name,
-        		temp = weather.main.temp,
-        		hum = weather.main.humidity,
-        		press = weather.main.pressure,
-        		html = '<strong>'+city+'</strong><br/>temperature: '+temp+'°C<br/>humidity: '+hum+'%<br>pressure: '+press,
-        		infowindow = new google.maps.InfoWindow({
-    				content: html,
-    				position: initialState.currentPlace.geometry.location
-				})
-				infowindow.open(initialState.map)
-				initialState.currentInfobox = infowindow
-				initialState.currentPlace.infobox = infowindow
-
-				mapIsReady()
-        }
-
-    })
+  	})
 
 }
 
-const mapIsReady = () => { //После того как получили карту
+const mapIsReady = (answer) => { //После того как получили карту
+
+	let infowindow = answer
+
+	initialState.currentInfobox = infowindow
+	initialState.currentPlace.infobox = infowindow
+
 	const store = createStore(reducer,initialState)
 
 	const mainRender = () => {
@@ -141,7 +122,13 @@ const mapIsReady = () => { //После того как получили кар�
 	mainRender()
 }
 
-getCurrentCoords() //Получаем текущие координаты пользователя
+if ('currentPlace' in localStorage) {
+	currentPosition = JSON.parse(localStorage.currentPlace).pos //если в localStorage сохранены координаты последнего просмотренного города
+	gotCoords()
+} else { // если нет, то
+	getCurrentCoords() //Получаем текущие координаты пользователя
+}
+
 
 
 
