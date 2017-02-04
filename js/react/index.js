@@ -26,8 +26,6 @@ const reducer = combineReducers({
 
 let currentPosition = { lat: 25.18, lng: 83 } //если пользователь запретит доступ к его геолокации
 
-let weather = null
-
 let initialState = {
 					map: null,
 					cities: 'cities' in localStorage ? JSON.parse(localStorage.cities) : [],

@@ -15386,8 +15386,6 @@ var reducer = (0, _redux.combineReducers)({
 
 var currentPosition = { lat: 25.18, lng: 83 }; //если пользователь запретит доступ к его геолокации
 
-var weather = null;
-
 var initialState = {
   map: null,
   cities: 'cities' in localStorage ? JSON.parse(localStorage.cities) : [],
